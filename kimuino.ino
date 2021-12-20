@@ -26,11 +26,6 @@
 #define UNDOCUMENTED //when this is defined, undocumented opcodes are handled.
                      //otherwise, they're simply treated as NOPs.
 
-#define NES_CPU      //when this is defined, the binary-coded decimal (BCD)
-                     //status flag is not honored by ADC and SBC. the 2A03
-                     //CPU in the Nintendo Entertainment System does not
-                     //support BCD operation.
-
 #define FLAG_CARRY     0x01
 #define FLAG_ZERO      0x02
 #define FLAG_INTERRUPT 0x04
@@ -81,7 +76,6 @@
 uint16_t pc;
 uint8_t sp, a, x, y, status;
 
-
 //helper variables
 uint32_t instructions = 0; //keep track of total instructions executed
 uint32_t clockticks6502 = 0, clockgoal6502 = 0;
@@ -123,45 +117,88 @@ void reset6502() {
     status |= FLAG_CONSTANT;
 }
 
-static void (* const addrtable[256])() PROGMEM = {
+const uintptr_t addrtable[256] PROGMEM = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
-/* 0 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
-/* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
-/* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
-/* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
-/* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 4 */
-/* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 5 */
-/* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, abso, /* 6 */
-/* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 7 */
-/* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* 8 */
-/* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* 9 */
-/* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* A */
-/* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* B */
-/* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* C */
-/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* D */
-/* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* E */
-/* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx  /* F */
+/* 0 */     (uintptr_t)&imp, (uintptr_t)&indx,  (uintptr_t)&imp, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&acc,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* 0 */
+/* 1 */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, /* 1 */
+/* 2 */    (uintptr_t)&abso, (uintptr_t)&indx,  (uintptr_t)&imp, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&acc,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* 2 */
+/* 3 */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, /* 3 */
+/* 4 */     (uintptr_t)&imp, (uintptr_t)&indx,  (uintptr_t)&imp, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&acc,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* 4 */
+/* 5 */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, /* 5 */
+/* 6 */     (uintptr_t)&imp, (uintptr_t)&indx,  (uintptr_t)&imp, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&acc,  (uintptr_t)&imm,  (uintptr_t)&ind, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* 6 */
+/* 7 */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, /* 7 */
+/* 8 */     (uintptr_t)&imm, (uintptr_t)&indx,  (uintptr_t)&imm, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&imp,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* 8 */
+/* 9 */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpy,  (uintptr_t)&zpy,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absy, (uintptr_t)&absy, /* 9 */
+/* A */     (uintptr_t)&imm, (uintptr_t)&indx,  (uintptr_t)&imm, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&imp,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* A */
+/* B */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpy,  (uintptr_t)&zpy,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absy, (uintptr_t)&absy, /* B */
+/* C */     (uintptr_t)&imm, (uintptr_t)&indx,  (uintptr_t)&imm, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&imp,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* C */
+/* D */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, /* D */
+/* E */     (uintptr_t)&imm, (uintptr_t)&indx,  (uintptr_t)&imm, (uintptr_t)&indx,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,   (uintptr_t)&zp,  (uintptr_t)&imp,  (uintptr_t)&imm,  (uintptr_t)&imp,  (uintptr_t)&imm, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, (uintptr_t)&abso, /* E */
+/* F */     (uintptr_t)&rel, (uintptr_t)&indy,  (uintptr_t)&imp, (uintptr_t)&indy,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&zpx,  (uintptr_t)&imp, (uintptr_t)&absy,  (uintptr_t)&imp, (uintptr_t)&absy, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx, (uintptr_t)&absx  /* F */
+
 };
 
-static void (* const optable[256])() PROGMEM = {
+
+//static void (* const addrtable[256])() PROGMEM = {
+//*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
+//* 0 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
+//* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
+//* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
+//* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
+//* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 4 */
+//* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 5 */
+//* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, abso, /* 6 */
+//* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 7 */
+//* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* 8 */
+//* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* 9 */
+//* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* A */
+//* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* B */
+//* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* C */
+//* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* D */
+//* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* E */
+//* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx  /* F */
+//};
+
+const uintptr_t optable[256] PROGMEM = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
-/* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
-/* 2 */      jsr,  _and,  nop,  rla,  _bit,  _and,  rol,  rla,  plp,  _and,  rol,  nop,  _bit,  _and,  rol,  rla, /* 2 */
-/* 3 */      bmi,  _and,  nop,  rla,  nop,  _and,  rol,  rla,  sec,  _and,  nop,  rla,  nop,  _and,  rol,  rla, /* 3 */
-/* 4 */      rti,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  sre, /* 4 */
-/* 5 */      bvc,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  _cli,  eor,  nop,  sre,  nop,  eor,  lsr,  sre, /* 5 */
-/* 6 */      rts,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  rra, /* 6 */
-/* 7 */      bvs,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  _sei,  adc,  nop,  rra,  nop,  adc,  ror,  rra, /* 7 */
-/* 8 */      nop,  sta,  nop,  sax,  sty,  sta,  stx,  sax,  dey,  nop,  txa,  nop,  sty,  sta,  stx,  sax, /* 8 */
-/* 9 */      bcc,  sta,  nop,  nop,  sty,  sta,  stx,  sax,  tya,  sta,  txs,  nop,  nop,  sta,  nop,  nop, /* 9 */
-/* A */      ldy,  lda,  ldx,  lax,  ldy,  lda,  ldx,  lax,  tay,  lda,  tax,  nop,  ldy,  lda,  ldx,  lax, /* A */
-/* B */      bcs,  lda,  nop,  lax,  ldy,  lda,  ldx,  lax,  clv,  lda,  tsx,  lax,  ldy,  lda,  ldx,  lax, /* B */
-/* C */      cpy,  cmp,  nop,  dcp,  cpy,  cmp,  dec,  dcp,  iny,  cmp,  dex,  nop,  cpy,  cmp,  dec,  dcp, /* C */
-/* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp, /* D */
-/* E */      cpx,  sbc,  nop,  isb,  cpx,  sbc,  inc,  isb,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  isb, /* E */
-/* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
+/* 0 */      (uintptr_t)&brk,  (uintptr_t)&ora,  (uintptr_t)&nop,  (uintptr_t)&slo,  (uintptr_t)&nop,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&slo,  (uintptr_t)&php,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&nop,  (uintptr_t)&nop,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&slo, /* 0 */
+/* 1 */      (uintptr_t)&bpl,  (uintptr_t)&ora,  (uintptr_t)&nop,  (uintptr_t)&slo,  (uintptr_t)&nop,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&slo,  (uintptr_t)&clc,  (uintptr_t)&ora,  (uintptr_t)&nop,  (uintptr_t)&slo,  (uintptr_t)&nop,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&slo, /* 1 */
+/* 2 */      (uintptr_t)&jsr,  (uintptr_t)&_and,  (uintptr_t)&nop,  (uintptr_t)&rla,  (uintptr_t)&_bit,  (uintptr_t)&_and,  (uintptr_t)&rol,  (uintptr_t)&rla,  (uintptr_t)&plp,  (uintptr_t)&_and,  (uintptr_t)&rol,  (uintptr_t)&nop,  (uintptr_t)&_bit,  (uintptr_t)&_and,  (uintptr_t)&rol,  (uintptr_t)&rla, /* 2 */
+/* 3 */      (uintptr_t)&bmi,  (uintptr_t)&_and,  (uintptr_t)&nop,  (uintptr_t)&rla,  (uintptr_t)&nop,  (uintptr_t)&_and,  (uintptr_t)&rol,  (uintptr_t)&rla,  (uintptr_t)&sec,  (uintptr_t)&_and,  (uintptr_t)&nop,  (uintptr_t)&rla,  (uintptr_t)&nop,  (uintptr_t)&_and,  (uintptr_t)&rol,  (uintptr_t)&rla, /* 3 */
+/* 4 */      (uintptr_t)&rti,  (uintptr_t)&eor,  (uintptr_t)&nop,  (uintptr_t)&sre,  (uintptr_t)&nop,  (uintptr_t)&eor,  (uintptr_t)&lsr,  (uintptr_t)&sre,  (uintptr_t)&pha,  (uintptr_t)&eor,  (uintptr_t)&lsr,  (uintptr_t)&nop,  (uintptr_t)&jmp,  (uintptr_t)&eor,  (uintptr_t)&lsr,  (uintptr_t)&sre, /* 4 */
+/* 5 */      (uintptr_t)&bvc,  (uintptr_t)&eor,  (uintptr_t)&nop,  (uintptr_t)&sre,  (uintptr_t)&nop,  (uintptr_t)&eor,  (uintptr_t)&lsr,  (uintptr_t)&sre,  (uintptr_t)&_cli,  (uintptr_t)&eor,  (uintptr_t)&nop,  (uintptr_t)&sre,  (uintptr_t)&nop,  (uintptr_t)&eor,  (uintptr_t)&lsr,  (uintptr_t)&sre, /* 5 */
+/* 6 */      (uintptr_t)&rts,  (uintptr_t)&adc,  (uintptr_t)&nop,  (uintptr_t)&rra,  (uintptr_t)&nop,  (uintptr_t)&adc,  (uintptr_t)&ror,  (uintptr_t)&rra,  (uintptr_t)&pla,  (uintptr_t)&adc,  (uintptr_t)&ror,  (uintptr_t)&nop,  (uintptr_t)&jmp,  (uintptr_t)&adc,  (uintptr_t)&ror,  (uintptr_t)&rra, /* 6 */
+/* 7 */      (uintptr_t)&bvs,  (uintptr_t)&adc,  (uintptr_t)&nop,  (uintptr_t)&rra,  (uintptr_t)&nop,  (uintptr_t)&adc,  (uintptr_t)&ror,  (uintptr_t)&rra,  (uintptr_t)&_sei,  (uintptr_t)&adc,  (uintptr_t)&nop,  (uintptr_t)&rra,  (uintptr_t)&nop,  (uintptr_t)&adc,  (uintptr_t)&ror,  (uintptr_t)&rra, /* 7 */
+/* 8 */      (uintptr_t)&nop,  (uintptr_t)&sta,  (uintptr_t)&nop,  (uintptr_t)&sax,  (uintptr_t)&sty,  (uintptr_t)&sta,  (uintptr_t)&stx,  (uintptr_t)&sax,  (uintptr_t)&dey,  (uintptr_t)&nop,  (uintptr_t)&txa,  (uintptr_t)&nop,  (uintptr_t)&sty,  (uintptr_t)&sta,  (uintptr_t)&stx,  (uintptr_t)&sax, /* 8 */
+/* 9 */      (uintptr_t)&bcc,  (uintptr_t)&sta,  (uintptr_t)&nop,  (uintptr_t)&nop,  (uintptr_t)&sty,  (uintptr_t)&sta,  (uintptr_t)&stx,  (uintptr_t)&sax,  (uintptr_t)&tya,  (uintptr_t)&sta,  (uintptr_t)&txs,  (uintptr_t)&nop,  (uintptr_t)&nop,  (uintptr_t)&sta,  (uintptr_t)&nop,  (uintptr_t)&nop, /* 9 */
+/* A */      (uintptr_t)&ldy,  (uintptr_t)&lda,  (uintptr_t)&ldx,  (uintptr_t)&lax,  (uintptr_t)&ldy,  (uintptr_t)&lda,  (uintptr_t)&ldx,  (uintptr_t)&lax,  (uintptr_t)&tay,  (uintptr_t)&lda,  (uintptr_t)&tax,  (uintptr_t)&nop,  (uintptr_t)&ldy,  (uintptr_t)&lda,  (uintptr_t)&ldx,  (uintptr_t)&lax, /* A */
+/* B */      (uintptr_t)&bcs,  (uintptr_t)&lda,  (uintptr_t)&nop,  (uintptr_t)&lax,  (uintptr_t)&ldy,  (uintptr_t)&lda,  (uintptr_t)&ldx,  (uintptr_t)&lax,  (uintptr_t)&clv,  (uintptr_t)&lda,  (uintptr_t)&tsx,  (uintptr_t)&lax,  (uintptr_t)&ldy,  (uintptr_t)&lda,  (uintptr_t)&ldx,  (uintptr_t)&lax, /* B */
+/* C */      (uintptr_t)&cpy,  (uintptr_t)&cmp,  (uintptr_t)&nop,  (uintptr_t)&dcp,  (uintptr_t)&cpy,  (uintptr_t)&cmp,  (uintptr_t)&dec,  (uintptr_t)&dcp,  (uintptr_t)&iny,  (uintptr_t)&cmp,  (uintptr_t)&dex,  (uintptr_t)&nop,  (uintptr_t)&cpy,  (uintptr_t)&cmp,  (uintptr_t)&dec,  (uintptr_t)&dcp, /* C */
+/* D */      (uintptr_t)&bne,  (uintptr_t)&cmp,  (uintptr_t)&nop,  (uintptr_t)&dcp,  (uintptr_t)&nop,  (uintptr_t)&cmp,  (uintptr_t)&dec,  (uintptr_t)&dcp,  (uintptr_t)&cld,  (uintptr_t)&cmp,  (uintptr_t)&nop,  (uintptr_t)&dcp,  (uintptr_t)&nop,  (uintptr_t)&cmp,  (uintptr_t)&dec,  (uintptr_t)&dcp, /* D */
+/* E */      (uintptr_t)&cpx,  (uintptr_t)&sbc,  (uintptr_t)&nop,  (uintptr_t)&isb,  (uintptr_t)&cpx,  (uintptr_t)&sbc,  (uintptr_t)&inc,  (uintptr_t)&isb,  (uintptr_t)&inx,  (uintptr_t)&sbc,  (uintptr_t)&nop,  (uintptr_t)&sbc,  (uintptr_t)&cpx,  (uintptr_t)&sbc,  (uintptr_t)&inc,  (uintptr_t)&isb, /* E */
+/* F */      (uintptr_t)&beq,  (uintptr_t)&sbc,  (uintptr_t)&nop,  (uintptr_t)&isb,  (uintptr_t)&nop,  (uintptr_t)&sbc,  (uintptr_t)&inc,  (uintptr_t)&isb,  (uintptr_t)&sed,  (uintptr_t)&sbc,  (uintptr_t)&nop,  (uintptr_t)&isb,  (uintptr_t)&nop,  (uintptr_t)&sbc,  (uintptr_t)&inc,  (uintptr_t)&isb  /* F */
 };
+
+
+//static void (* const optable[256])() PROGMEM = {
+//*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
+//* 0 */      brk,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
+//* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
+//* 2 */      jsr,  _and,  nop,  rla,  _bit,  _and,  rol,  rla,  plp,  _and,  rol,  nop,  _bit,  _and,  rol,  rla, /* 2 */
+//* 3 */      bmi,  _and,  nop,  rla,  nop,  _and,  rol,  rla,  sec,  _and,  nop,  rla,  nop,  _and,  rol,  rla, /* 3 */
+//* 4 */      rti,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  sre, /* 4 */
+//* 5 */      bvc,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  _cli,  eor,  nop,  sre,  nop,  eor,  lsr,  sre, /* 5 */
+//* 6 */      rts,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  rra, /* 6 */
+//* 7 */      bvs,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  _sei,  adc,  nop,  rra,  nop,  adc,  ror,  rra, /* 7 */
+//* 8 */      nop,  sta,  nop,  sax,  sty,  sta,  stx,  sax,  dey,  nop,  txa,  nop,  sty,  sta,  stx,  sax, /* 8 */
+//* 9 */      bcc,  sta,  nop,  nop,  sty,  sta,  stx,  sax,  tya,  sta,  txs,  nop,  nop,  sta,  nop,  nop, /* 9 */
+//* A */      ldy,  lda,  ldx,  lax,  ldy,  lda,  ldx,  lax,  tay,  lda,  tax,  nop,  ldy,  lda,  ldx,  lax, /* A */
+//* B */      bcs,  lda,  nop,  lax,  ldy,  lda,  ldx,  lax,  clv,  lda,  tsx,  lax,  ldy,  lda,  ldx,  lax, /* B */
+//* C */      cpy,  cmp,  nop,  dcp,  cpy,  cmp,  dec,  dcp,  iny,  cmp,  dex,  nop,  cpy,  cmp,  dec,  dcp, /* C */
+//* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp, /* D */
+//* E */      cpx,  sbc,  nop,  isb,  cpx,  sbc,  inc,  isb,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  isb, /* E */
+//* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
+//};
 
 static const uint32_t ticktable[256] PROGMEM = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
@@ -187,12 +224,14 @@ uint8_t penaltyop, penaltyaddr;
 
 //addressing mode functions, calculates effective addresses
 static void imp() { //implied
+    //Serial.println("call IMP");
 }
 
 static void acc() { //accumulator
 }
 
 static void imm() { //immediate
+    //Serial.println("call IMM");
     ea = pc++;
 }
 
@@ -399,7 +438,7 @@ static void bpl() {
     }
 }
 
-static void brk() {
+static void brk() {//Serial.println("call BRK");
     pc++;
     push16(pc); //push next instruction address onto stack
     push8(status | FLAG_BREAK); //push CPU status to stack
@@ -826,7 +865,7 @@ void irq6502() {
     pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
 }
 
-void exec6502(uint32_t tickcount) {
+/*void exec6502(uint32_t tickcount) {
     clockgoal6502 += tickcount;
    
     while (clockticks6502 < clockgoal6502) {
@@ -844,7 +883,7 @@ void exec6502(uint32_t tickcount) {
         instructions++;
     }
 
-}
+}*/
 
 void step6502() {
     opcode = read6502(pc++);
@@ -852,12 +891,25 @@ void step6502() {
 
     penaltyop = 0;
     penaltyaddr = 0;
+    
+    Serial.println("call step6502");
+    
+    
+    void (*adt)() = (void *)(pgm_read_word_near(addrtable + opcode));  //addrtable[opcode];
+    
+    //Serial.println((int)imm, HEX);
+    //Serial.println((int)(*adt), HEX);
+    
+    void (*opt)() = (void *)(pgm_read_word_near(optable + opcode));    //optable[opcode];
+        
+    //Serial.println((int)lda, HEX);
+    //Serial.println((int)(*opt), HEX);
 
-    (*addrtable[opcode])();
-    (*optable[opcode])();
-    
-    
-    clockticks6502 += ticktable[opcode];
+    (*adt)();
+    (*opt)();
+
+
+    clockticks6502 += pgm_read_byte_near(ticktable + opcode);//ticktable[opcode];
     if (penaltyop && penaltyaddr) clockticks6502++;
     clockgoal6502 = clockticks6502;
 
@@ -885,19 +937,38 @@ void write6502(uint16_t address, uint8_t value) {
 void setup()
 {
     Serial.begin(9600);
-     
+    RAM[0] = 0xa9; // LDA imm data
+    RAM[1] = 0x08;
+    RAM[2] = 0xa2; // LDX imm data
+    RAM[3] = 0x04;
+    RAM[4] = 0xa0; // LDY imm data
+    RAM[5] = 0x07;
+    RAM[6] = 0xa9; // LDA imm data
+    RAM[7] = 0x03;
+    
+    pc = 0;
+    a = 0;
+    x = 0;
+    y = 0;
+    
+    step6502();   
+    Serial.print("A: ");
+    Serial.println(a);
+    
+    step6502();
+    Serial.print("X: ");
+    Serial.println(x);
+    
+    step6502();
+    Serial.print("Y: ");
+    Serial.println(y);
+    
+    step6502();
+    Serial.print("A: ");
+    Serial.println(a);
 }
 
 void loop()
-{
-    RAM[0] = 0xa9; // LDA imm data
-    RAM[1] = 0x08;
+{    
     
-    pc = 0;
-    step6502();   
-    
-    Serial.print("A: ");
-    Serial.print(a);
-    Serial.print("\n");
-    delay(1000);
 }
