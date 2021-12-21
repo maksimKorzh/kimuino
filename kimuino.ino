@@ -22,7 +22,7 @@
  ==============================================
 \**********************************************/
 
-const uint8_t ROM[] = {
+const uint8_t ROM[] PROGMEM = {
 /* OrgASM 6502 Assembler.      TASM 3.3 (Macintosh OS X) May 2015. */
 /* 0000 */                     //  ;- - - - - - - - - - - - - - KIM.ASM - - - - - - - - - - -
 /* 0000 */                     //  ; COPYRIGHT MOS TECHNOLOGY, INC
@@ -1062,7 +1062,7 @@ const uint8_t ROM[] = {
 };
 
 // Interrupt requests (instead of filling memory from 1FFF to FFFA with 0xFF)
-const uint8_t IRQ[] = {
+const uint8_t IRQ[] PROGMEM = {
 /* FFFA */                     //  ;       ** INTERRUPT VECTORS **
 /* FFFA */                     //          .org  $1FFA
 /* FFFA */ 0x00, 0x1C,         //  NMIENT  .WORD NMIT
@@ -1903,11 +1903,86 @@ void step6502() {
 }
 
 uint8_t read6502(uint16_t address) {
-    return RAM[address];
+  // IRQ addresses
+  if (address >= 0xFFFA) return pgm_read_byte_near(IRQ + (address - 0xFFFA));  // IRQ[address - 0xFFFA];
+  
+  // KIM-1 ROM (HEX monitor)
+  if (address >= 0x1800) return pgm_read_byte_near(ROM + (address - 0x1800));  // ROM[address - 0x1800];
+  
+  /* KIM-1 6530 RIOT chips
+  if (addr >= 0x1700) {
+    // read key press
+    if (addr == 0x1740) {
+      let sv = (RIOT[0x42] >> 1) & 0xf;
+      
+      if (sv == 0) {
+        if (char_pending <= 6) {
+          return key_bits[char_pending];
+        } else {
+          return 0xff;
+        }
+      } else if (sv == 1) {
+        if ((char_pending >= 7) && (char_pending <= 13)) {
+          return key_bits[char_pending-7];
+        } else {
+          return 0xff;
+        }
+      } else if (sv == 2) {
+        if ((char_pending >= 14) && (char_pending <= 20)) {
+          return key_bits[char_pending-14];
+        } else {
+          return 0xff;
+        }
+      } else if (sv == 3) {
+        if (kim1_serial_mode) {
+          return 0;
+        }
+          return 0xff;
+      } else {
+          return 0x80;
+      }
+    }*/
+    
+    /* read timers
+    if ((addr >= 0x1704) && (addr <= 0x1707)) {
+      if (single_step == 1) {
+          if (addr == 0x1707) return(0x80);  // always bailout in SST mode
+          else return timer.read(addr);
+      } return timer.read(addr);
+    }*/
+    
+    //return RIOT[addr - 0x1700];
+  //}
+  
+  // KIM-1 RAM
+  if (address < 0x1700) return RAM[address];
+
+  // shouldn't get here
+  return 0;
 }
 
 void write6502(uint16_t address, uint8_t value) {
-    RAM[address] = value;
+    // KIM-1 6530 RIOT chips
+    if (address >= 0x1700) {
+      /*if ((address >= 0x1704) && (address <= 0x1707)) {   // set timer
+          timer.write(addr, value);
+          return;
+      }*/
+      
+      RIOT[address - 0x1700] = value;
+      //if (address == 0x1740) driveLED();
+      return;
+    }
+  
+  // KIM-1 RAM
+  if (address < 0x1700) {  
+      RAM[address] = value;
+      return;
+  }
+
+  // shouldn't get here  
+  //console.log('Error write address: 0x' + addr.toString(16));
+  return 0;
 }
 
 /**********************************************\
@@ -1930,26 +2005,26 @@ void setup()
     RAM[6] = 0xa9; // LDA imm data
     RAM[7] = 0x03;
     
-    pc = 0;
-    a = 0;
-    x = 0;
-    y = 0;
-    
-    step6502();   
-    Serial.print("A: ");
-    Serial.println(a);
+    reset6502();
+    Serial.println(pc, HEX);
     
     step6502();
-    Serial.print("X: ");
-    Serial.println(x);
+    Serial.println(pc, HEX);
     
     step6502();
-    Serial.print("Y: ");
-    Serial.println(y);
+    Serial.println(pc, HEX);
     
     step6502();
-    Serial.print("A: ");
-    Serial.println(a);
+    Serial.println(pc, HEX);
+    
+    step6502();
+    Serial.println(pc, HEX);
+    
+    step6502();
+    Serial.println(pc, HEX);
+    
+    step6502();
+    Serial.println(pc, HEX);
 }
 
 void loop()
