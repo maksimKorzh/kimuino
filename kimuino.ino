@@ -17,6 +17,17 @@
 /**********************************************\
  ==============================================
                     
+                   VARIABLES
+
+ ==============================================
+\**********************************************/
+
+char char_pending;
+uint8_t serial_mode = 1;
+
+/**********************************************\
+ ==============================================
+                    
                   KIM-1 MEMORY
 
  ==============================================
@@ -1907,41 +1918,33 @@ uint8_t read6502(uint16_t address) {
   if (address >= 0xFFFA) return pgm_read_byte_near(IRQ + (address - 0xFFFA));  // IRQ[address - 0xFFFA];
   
   // KIM-1 ROM (HEX monitor)
-  if (address >= 0x1800) return pgm_read_byte_near(ROM + (address - 0x1800));  // ROM[address - 0x1800];
+  if (address >= 0x1800) {
+      // print char to serial port
+      if (address == 0x1EA0) Serial.print(a);
   
-  /* KIM-1 6530 RIOT chips
-  if (addr >= 0x1700) {
-    // read key press
-    if (addr == 0x1740) {
-      let sv = (RIOT[0x42] >> 1) & 0xf;
-      
-      if (sv == 0) {
-        if (char_pending <= 6) {
-          return key_bits[char_pending];
-        } else {
-          return 0xff;
-        }
-      } else if (sv == 1) {
-        if ((char_pending >= 7) && (char_pending <= 13)) {
-          return key_bits[char_pending-7];
-        } else {
-          return 0xff;
-        }
-      } else if (sv == 2) {
-        if ((char_pending >= 14) && (char_pending <= 20)) {
-          return key_bits[char_pending-14];
-        } else {
-          return 0xff;
-        }
-      } else if (sv == 3) {
-        if (kim1_serial_mode) {
-          return 0;
-        }
-          return 0xff;
-      } else {
-          return 0x80;
+      return pgm_read_byte_near(ROM + (address - 0x1800));  // ROM[address - 0x1800];
+  }
+  
+  // KIM-1 6530 RIOT chips
+  if (address >= 0x1700) {
+      // read key press
+      if (address == 0x1740) {
+          uint8_t sv = (RIOT[0x42] >> 1) & 0xf;
+          
+          if (sv == 0) {
+              if (char_pending <= 6) {}//return key_bits[char_pending];
+              else return 0xff; 
+          } else if (sv == 1) {
+              if ((char_pending >= 7) && (char_pending <= 13)) {}//return key_bits[char_pending-7];
+              else return 0xff;
+          } else if (sv == 2) {
+              if ((char_pending >= 14) && (char_pending <= 20)) {}//return key_bits[char_pending-14];
+              else return 0xff;
+          } else if (sv == 3) {
+              if (serial_mode) return 0;
+              return 0xff;
+          } else return 0x80;
       }
-    }*/
     
     /* read timers
     if ((addr >= 0x1704) && (addr <= 0x1707)) {
@@ -1951,8 +1954,8 @@ uint8_t read6502(uint16_t address) {
       } return timer.read(addr);
     }*/
     
-    //return RIOT[addr - 0x1700];
-  //}
+    return RIOT[address - 0x1700];
+  }
   
   // KIM-1 RAM
   if (address < 0x1700) return RAM[address];
@@ -2006,28 +2009,11 @@ void setup()
     RAM[7] = 0x03;
     
     reset6502();
-    Serial.println(pc, HEX);
-    
-    step6502();
-    Serial.println(pc, HEX);
-    
-    step6502();
-    Serial.println(pc, HEX);
-    
-    step6502();
-    Serial.println(pc, HEX);
-    
-    step6502();
-    Serial.println(pc, HEX);
-    
-    step6502();
-    Serial.println(pc, HEX);
-    
-    step6502();
-    Serial.println(pc, HEX);
 }
 
 void loop()
 {    
-    
+    step6502();
+    //Serial.println(pc, HEX);
+    //delay(100);
 }
