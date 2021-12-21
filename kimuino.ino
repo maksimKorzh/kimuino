@@ -1926,34 +1926,34 @@ uint8_t read6502(uint16_t address) {
   if (address >= 0xFFFA) return pgm_read_byte_near(IRQ + (address - 0xFFFA));  // IRQ[address - 0xFFFA];
   
   // KIM-1 ROM (HEX monitor)
-  if (address >= 0x1800) {
+  if (address >= 0x1800) {  // thanks to Oscar Vermeulen for the below intercepts
       // intercept OUTCH (send char to serial)
-      if (address == 0x1EA0)
-	    {		Serial.print((char)a);	// print A to serial
-			    pc = 0x1ED3;	// skip subroutine
-			    return (0xEA);  // and return from subroutine with a fake NOP instruction
-	    }
-	    
-	    // intercept GETCH (get char from serial).
-	    if (address == 0x1E65) {
-	        a = Serial.read();//getAkey();		// get A from main loop's curkey
-			    if (a == 0) {
-				    pc = 0x1E60;	  // cycle through GET1 loop for character start,
-				    return (0xEA);  //  let the 6502 runs through this loop in a fake way
-			    }
-			    //clearkey();
-			    x = RAM[0x00FD];	// x saved in TMPX by getch, need to get it in x;
-			    pc = 0x1E87;   // skip subroutine
-			    return (0xEA); // and return from subroutine with a fake NOP instruction
-	    }
-	    
-	    // intercept DETCPS
-	    if (address == 0x1C2A) {
-	        RIOT[0x17F3-0x17C0] = 1;  // just store some random bps delay on TTY in CNTH30
-			    RIOT[0x17F2-0x17C0] = 1;	// just store some random bps delay on TTY in CNTL30
-			    pc = 0x1C4F;    // skip subroutine
-			    return (0xEA); // and return from subroutine with a fake NOP instruction
-	    }
+      if (address == 0x1EA0) {
+          Serial.print((char)a);	// print A to serial
+          pc = 0x1ED3;	          // skip subroutine
+          return (0xEA);          // and return from subroutine with a fake NOP instruction
+      }
+
+      // intercept GETCH (get char from serial).
+      if (address == 0x1E65) {
+          a = Serial.read();      // get A from main loop's curkey
+          if (a == 0) {
+	          pc = 0x1E60;	        // cycle through GET1 loop for character start,
+	          return (0xEA);        //  let the 6502 runs through this loop in a fake way
+          }
+          //clearkey();
+          x = RAM[0x00FD];	      // x saved in TMPX by getch, need to get it in x;
+          pc = 0x1E87;            // skip subroutine
+          return (0xEA);          // and return from subroutine with a fake NOP instruction
+      }
+
+      // intercept DETCPS
+      if (address == 0x1C2A) {
+          RIOT[0x17F3-0x17C0] = 1;  // just store some random bps delay on TTY in CNTH30
+          RIOT[0x17F2-0x17C0] = 1;	// just store some random bps delay on TTY in CNTL30
+          pc = 0x1C4F;    // skip subroutine
+          return (0xEA); // and return from subroutine with a fake NOP instruction
+      }
   
       return pgm_read_byte_near(ROM + (address - 0x1800));  // ROM[address - 0x1800];
   }
