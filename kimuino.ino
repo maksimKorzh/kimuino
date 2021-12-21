@@ -1914,13 +1914,46 @@ void step6502() {
 }
 
 uint8_t read6502(uint16_t address) {
+  /*switch (address) {
+      case 0x1C4F: Serial.println("TTY/KB selection"); break;
+      case 0x1C77: Serial.println("TTYKB"); break;
+      case 0x1E5A: Serial.println("GETCH TTY"); break;
+      case 0x1EFE: Serial.println("AK"); break;
+      case 0x1C2A: Serial.println("DETCPS"); break;
+  }*/
+  
   // IRQ addresses
   if (address >= 0xFFFA) return pgm_read_byte_near(IRQ + (address - 0xFFFA));  // IRQ[address - 0xFFFA];
   
   // KIM-1 ROM (HEX monitor)
   if (address >= 0x1800) {
-      // print char to serial port
-      if (address == 0x1EA0) Serial.print(a);
+      // intercept OUTCH (send char to serial)
+      if (address == 0x1EA0)
+	    {		Serial.print((char)a);	// print A to serial
+			    pc = 0x1ED3;	// skip subroutine
+			    return (0xEA);  // and return from subroutine with a fake NOP instruction
+	    }
+	    
+	    // intercept GETCH (get char from serial).
+	    if (address == 0x1E65) {
+	        a = Serial.read();//getAkey();		// get A from main loop's curkey
+			    if (a == 0) {
+				    pc = 0x1E60;	  // cycle through GET1 loop for character start,
+				    return (0xEA);  //  let the 6502 runs through this loop in a fake way
+			    }
+			    //clearkey();
+			    x = RAM[0x00FD];	// x saved in TMPX by getch, need to get it in x;
+			    pc = 0x1E87;   // skip subroutine
+			    return (0xEA); // and return from subroutine with a fake NOP instruction
+	    }
+	    
+	    // intercept DETCPS
+	    if (address == 0x1C2A) {
+	        RIOT[0x17F3-0x17C0] = 1;  // just store some random bps delay on TTY in CNTH30
+			    RIOT[0x17F2-0x17C0] = 1;	// just store some random bps delay on TTY in CNTL30
+			    pc = 0x1C4F;    // skip subroutine
+			    return (0xEA); // and return from subroutine with a fake NOP instruction
+	    }
   
       return pgm_read_byte_near(ROM + (address - 0x1800));  // ROM[address - 0x1800];
   }
@@ -1965,6 +1998,12 @@ uint8_t read6502(uint16_t address) {
 }
 
 void write6502(uint16_t address, uint8_t value) {
+    /*if (address > 0x1700) {
+    Serial.print("address ");
+    Serial.println(address, HEX);
+    Serial.println(value, HEX);
+    }*/
+    
     // KIM-1 6530 RIOT chips
     if (address >= 0x1700) {
       /*if ((address >= 0x1704) && (address <= 0x1707)) {   // set timer
@@ -1998,22 +2037,20 @@ void write6502(uint16_t address, uint8_t value) {
 
 void setup()
 {
+    // start serial communication
     Serial.begin(9600);
-    RAM[0] = 0xa9; // LDA imm data
-    RAM[1] = 0x08;
-    RAM[2] = 0xa2; // LDX imm data
-    RAM[3] = 0x04;
-    RAM[4] = 0xa0; // LDY imm data
-    RAM[5] = 0x07;
-    RAM[6] = 0xa9; // LDA imm data
-    RAM[7] = 0x03;
     
+    // reset COU
     reset6502();
+    
+    // set KIM-1 'vector' locations
+    write6502(0x17FA, 0x00);
+    write6502(0x17FB, 0x1C);
+    write6502(0x17FE, 0x00);
+    write6502(0x17FF, 0x1C);
 }
 
 void loop()
 {    
     step6502();
-    //Serial.println(pc, HEX);
-    //delay(100);
 }
