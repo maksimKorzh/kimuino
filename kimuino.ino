@@ -138,27 +138,6 @@ const uintptr_t addrtable[256] PROGMEM = {
 
 };
 
-
-//static void (* const addrtable[256])() PROGMEM = {
-//*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
-//* 0 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
-//* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
-//* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
-//* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
-//* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 4 */
-//* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 5 */
-//* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, abso, /* 6 */
-//* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 7 */
-//* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* 8 */
-//* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* 9 */
-//* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* A */
-//* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* B */
-//* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* C */
-//* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* D */
-//* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* E */
-//* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx  /* F */
-//};
-
 const uintptr_t optable[256] PROGMEM = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
 /* 0 */      (uintptr_t)&brk,  (uintptr_t)&ora,  (uintptr_t)&nop,  (uintptr_t)&slo,  (uintptr_t)&nop,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&slo,  (uintptr_t)&php,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&nop,  (uintptr_t)&nop,  (uintptr_t)&ora,  (uintptr_t)&asl,  (uintptr_t)&slo, /* 0 */
@@ -179,28 +158,7 @@ const uintptr_t optable[256] PROGMEM = {
 /* F */      (uintptr_t)&beq,  (uintptr_t)&sbc,  (uintptr_t)&nop,  (uintptr_t)&isb,  (uintptr_t)&nop,  (uintptr_t)&sbc,  (uintptr_t)&inc,  (uintptr_t)&isb,  (uintptr_t)&sed,  (uintptr_t)&sbc,  (uintptr_t)&nop,  (uintptr_t)&isb,  (uintptr_t)&nop,  (uintptr_t)&sbc,  (uintptr_t)&inc,  (uintptr_t)&isb  /* F */
 };
 
-
-//static void (* const optable[256])() PROGMEM = {
-//*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-//* 0 */      brk,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
-//* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
-//* 2 */      jsr,  _and,  nop,  rla,  _bit,  _and,  rol,  rla,  plp,  _and,  rol,  nop,  _bit,  _and,  rol,  rla, /* 2 */
-//* 3 */      bmi,  _and,  nop,  rla,  nop,  _and,  rol,  rla,  sec,  _and,  nop,  rla,  nop,  _and,  rol,  rla, /* 3 */
-//* 4 */      rti,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  sre, /* 4 */
-//* 5 */      bvc,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  _cli,  eor,  nop,  sre,  nop,  eor,  lsr,  sre, /* 5 */
-//* 6 */      rts,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  rra, /* 6 */
-//* 7 */      bvs,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  _sei,  adc,  nop,  rra,  nop,  adc,  ror,  rra, /* 7 */
-//* 8 */      nop,  sta,  nop,  sax,  sty,  sta,  stx,  sax,  dey,  nop,  txa,  nop,  sty,  sta,  stx,  sax, /* 8 */
-//* 9 */      bcc,  sta,  nop,  nop,  sty,  sta,  stx,  sax,  tya,  sta,  txs,  nop,  nop,  sta,  nop,  nop, /* 9 */
-//* A */      ldy,  lda,  ldx,  lax,  ldy,  lda,  ldx,  lax,  tay,  lda,  tax,  nop,  ldy,  lda,  ldx,  lax, /* A */
-//* B */      bcs,  lda,  nop,  lax,  ldy,  lda,  ldx,  lax,  clv,  lda,  tsx,  lax,  ldy,  lda,  ldx,  lax, /* B */
-//* C */      cpy,  cmp,  nop,  dcp,  cpy,  cmp,  dec,  dcp,  iny,  cmp,  dex,  nop,  cpy,  cmp,  dec,  dcp, /* C */
-//* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp, /* D */
-//* E */      cpx,  sbc,  nop,  isb,  cpx,  sbc,  inc,  isb,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  isb, /* E */
-//* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
-//};
-
-static const uint32_t ticktable[256] PROGMEM = {
+static const uint8_t ticktable[256] PROGMEM = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
 /* 0 */      7,    6,    2,    8,    3,    3,    5,    5,    3,    2,    2,    2,    4,    4,    6,    6,  /* 0 */
 /* 1 */      2,    5,    2,    8,    4,    4,    6,    6,    2,    4,    2,    7,    4,    4,    7,    7,  /* 1 */
@@ -224,14 +182,12 @@ uint8_t penaltyop, penaltyaddr;
 
 //addressing mode functions, calculates effective addresses
 static void imp() { //implied
-    //Serial.println("call IMP");
 }
 
 static void acc() { //accumulator
 }
 
 static void imm() { //immediate
-    //Serial.println("call IMM");
     ea = pc++;
 }
 
@@ -311,8 +267,8 @@ static void indy() { // (indirect),Y
 }
 
 static uint16_t getvalue() {
-    if (addrtable[opcode] == acc) return((uint16_t)a);
-        else return((uint16_t)read6502(ea));
+    if (pgm_read_word_near(addrtable + opcode) == acc) return((uint16_t)a);
+    else return((uint16_t)read6502(ea));
 }
 
 static uint16_t getvalue16() {
@@ -320,8 +276,8 @@ static uint16_t getvalue16() {
 }
 
 static void putvalue(uint16_t saveval) {
-    if (addrtable[opcode] == acc) a = (uint8_t)(saveval & 0x00FF);
-        else write6502(ea, (saveval & 0x00FF));
+    if (pgm_read_word_near(addrtable + opcode) == acc) a = (uint8_t)(saveval & 0x00FF);
+    else write6502(ea, (saveval & 0x00FF));
 }
 
 //instruction handler functions
@@ -865,26 +821,6 @@ void irq6502() {
     pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
 }
 
-/*void exec6502(uint32_t tickcount) {
-    clockgoal6502 += tickcount;
-   
-    while (clockticks6502 < clockgoal6502) {
-        opcode = read6502(pc++);
-        status |= FLAG_CONSTANT;
-
-        penaltyop = 0;
-        penaltyaddr = 0;
-
-        (*addrtable[opcode])();
-        (*optable[opcode])();
-        clockticks6502 += ticktable[opcode];
-        if (penaltyop && penaltyaddr) clockticks6502++;
-
-        instructions++;
-    }
-
-}*/
-
 void step6502() {
     opcode = read6502(pc++);
     status |= FLAG_CONSTANT;
@@ -892,22 +828,10 @@ void step6502() {
     penaltyop = 0;
     penaltyaddr = 0;
     
-    Serial.println("call step6502");
-    
-    
-    void (*adt)() = (void *)(pgm_read_word_near(addrtable + opcode));  //addrtable[opcode];
-    
-    //Serial.println((int)imm, HEX);
-    //Serial.println((int)(*adt), HEX);
-    
+    void (*adt)() = (void *)(pgm_read_word_near(addrtable + opcode));  //addrtable[opcode];    
     void (*opt)() = (void *)(pgm_read_word_near(optable + opcode));    //optable[opcode];
-        
-    //Serial.println((int)lda, HEX);
-    //Serial.println((int)(*opt), HEX);
-
     (*adt)();
     (*opt)();
-
 
     clockticks6502 += pgm_read_byte_near(ticktable + opcode);//ticktable[opcode];
     if (penaltyop && penaltyaddr) clockticks6502++;
