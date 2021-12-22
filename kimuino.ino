@@ -1914,14 +1914,6 @@ void step6502() {
 }
 
 uint8_t read6502(uint16_t address) {
-  /*switch (address) {
-      case 0x1C4F: Serial.println("TTY/KB selection"); break;
-      case 0x1C77: Serial.println("TTYKB"); break;
-      case 0x1E5A: Serial.println("GETCH TTY"); break;
-      case 0x1EFE: Serial.println("AK"); break;
-      case 0x1C2A: Serial.println("DETCPS"); break;
-  }*/
-  
   // IRQ addresses
   if (address >= 0xFFFA) return pgm_read_byte_near(IRQ + (address - 0xFFFA));  // IRQ[address - 0xFFFA];
   
@@ -1936,23 +1928,25 @@ uint8_t read6502(uint16_t address) {
 
       // intercept GETCH (get char from serial).
       if (address == 0x1E65) {
-          a = Serial.read();      // get A from main loop's curkey
+          a = Serial.read();           // get A from serial
+          if (a == 0xFF) a = 0x00;     // Arduino reads 0xFF on no key, replace it with 0
+                    
           if (a == 0) {
-	          pc = 0x1E60;	        // cycle through GET1 loop for character start,
-	          return (0xEA);        //  let the 6502 runs through this loop in a fake way
+	          pc = 0x1E60;	           // cycle through GET1 loop for character start,
+	          return (0xEA);           //  let the 6502 runs through this loop in a fake way
           }
-          //clearkey();
-          x = RAM[0x00FD];	      // x saved in TMPX by getch, need to get it in x;
-          pc = 0x1E87;            // skip subroutine
-          return (0xEA);          // and return from subroutine with a fake NOP instruction
+
+          x = RAM[0x00FD];	           // x saved in TMPX by getch, need to get it in x;
+          pc = 0x1E87;                 // skip subroutine
+          return (0xEA);               // and return from subroutine with a fake NOP instruction
       }
 
       // intercept DETCPS
       if (address == 0x1C2A) {
-          RIOT[0x17F3-0x17C0] = 1;  // just store some random bps delay on TTY in CNTH30
-          RIOT[0x17F2-0x17C0] = 1;	// just store some random bps delay on TTY in CNTL30
-          pc = 0x1C4F;    // skip subroutine
-          return (0xEA); // and return from subroutine with a fake NOP instruction
+          RIOT[0x17F3-0x1700] = 1;     // just store some random bps delay on TTY in CNTH30
+          RIOT[0x17F2-0x1700] = 1;	   // just store some random bps delay on TTY in CNTL30
+          pc = 0x1C4F;                 // skip subroutine
+          return (0xEA);               // and return from subroutine with a fake NOP instruction
       }
   
       return pgm_read_byte_near(ROM + (address - 0x1800));  // ROM[address - 0x1800];
@@ -1998,19 +1992,13 @@ uint8_t read6502(uint16_t address) {
 }
 
 void write6502(uint16_t address, uint8_t value) {
-    /*if (address > 0x1700) {
-    Serial.print("address ");
-    Serial.println(address, HEX);
-    Serial.println(value, HEX);
-    }*/
-    
     // KIM-1 6530 RIOT chips
     if (address >= 0x1700) {
       /*if ((address >= 0x1704) && (address <= 0x1707)) {   // set timer
           timer.write(addr, value);
           return;
       }*/
-      
+
       RIOT[address - 0x1700] = value;
       //if (address == 0x1740) driveLED();
       return;
@@ -2022,8 +2010,7 @@ void write6502(uint16_t address, uint8_t value) {
       return;
   }
 
-  // shouldn't get here  
-  //console.log('Error write address: 0x' + addr.toString(16));
+  // shouldn't get here
   return 0;
 }
 
@@ -2040,7 +2027,7 @@ void setup()
     // start serial communication
     Serial.begin(9600);
     
-    // reset COU
+    // reset CPU
     reset6502();
     
     // set KIM-1 'vector' locations
