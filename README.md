@@ -9,7 +9,7 @@ Arduino based KIM-1 emulator
     0x2900 - 0x38FF    4096 bytes EEPROM Arduino Mega (Uno & Nano: 1024 bytes)
     0x4000 - 0x405F      95 bytes ROM Movit utility
     0x4060 - 0x408A      43 bytes ROM Save utility
-    0x408A - 0x40B5      43 bytes ROM Load utility
+    0x408B - 0x40B5      43 bytes ROM Load utility
     0xFFFA - 0xFFFF       6 bytes ROM IRQ table
 
 # MOVIT utility from the 1st book of KIM is used for this purpose
@@ -23,7 +23,7 @@ Arduino based KIM-1 emulator
 This will init addresses $D0-$D5 and call MOVIT
 
 # LOAD 512 bytes $2900-$2AFF EEPROM from EEPROM to $0200-$03FF RAM
- - Press 4081 [GO]
+ - Press 408B [GO]
 This will init addresses $D0-$D5 and call MOVIT
 
 # Run BASIC
@@ -34,7 +34,7 @@ This will init addresses $D0-$D5 and call MOVIT
 
 # LOAD/SAVE BASIC user program
     >A=USR(S)        // this will call SAVE at $4060
-    >A=USR(L)        // this will call LOAD at $408A
+    >A=USR(L)        // this will call LOAD at $408B
     >A=(USR(16480))  // SAVE if you've overwritten variable S
     >A=(USR(16513))  // SAVE if you've overwritten variable L
 
