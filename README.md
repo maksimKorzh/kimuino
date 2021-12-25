@@ -28,7 +28,8 @@ This will init addresses $D0-$D5 and call MOVIT
 
 # Run BASIC
  - Go to serial mode
- - Type in: 2000 [Space]
+ - Type in: 2000 [Space] (Cold start)
+ - Type in: 2003 [Space] (Warm start, after LOAD/SAVE)
  - Type in: Shift + [G]
 
 # LOAD/SAVE BASIC user program
