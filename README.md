@@ -36,7 +36,7 @@ This will init addresses $D0-$D5 and call MOVIT
     >A=USR(S)        // this will call SAVE at $4060
     >A=USR(L)        // this will call LOAD at $408B
     >A=(USR(16480))  // SAVE if you've overwritten variable S
-    >A=(USR(16513))  // SAVE if you've overwritten variable L
+    >A=(USR(16523))  // LOAD if you've overwritten variable L
 
 
 
